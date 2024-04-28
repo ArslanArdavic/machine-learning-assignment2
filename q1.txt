@@ -1,6 +1,0 @@
-MNIST dataset loaded.
-Performing clustering with Euclidean distance...
-Clustering complete.
-Evaluating clustering results...
-Clustering accuracy using Euclidean distance: 0.36761666666666665
-Sum of Squared Errors (SSE) using Euclidean distance: 2712226.2344135786

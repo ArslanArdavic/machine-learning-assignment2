@@ -3,6 +3,9 @@ from sklearn.decomposition import PCA
 import numpy as np
 import datetime
 
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.manifold import TSNE
+
 class KMeans:
     def __init__(self, n_clusters, max_iter=300):
         self.n_clusters = n_clusters
@@ -52,7 +55,42 @@ class KMeans:
         # Save the figure with the current time as the filename
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         plt.savefig(f'clusters_{current_time}.png')  # Save the figure with the current time
+
+    def reduce_dimensionality_with_tsne(self, train_images, n_components=3, random_state=42):
+        print("Reducing dimensionality with t-SNE...")
+        tsne = TSNE(n_components=n_components, random_state=random_state)
+        return tsne.fit_transform(train_images.reshape(train_images.shape[0], -1))
     
+    def visualize_clusters_with_tsne(self, train_images):
+        # Reduce dimensionality with t-SNE
+        train_images_tsne = self.reduce_dimensionality_with_tsne(train_images)
+
+        # Visualize in 3D
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        print("HERE3 ")
+
+        # Scatter plot for each cluster
+        for cluster_label in np.unique(self.labels):
+            indices = np.where(self.labels == cluster_label)[0]
+            ax.scatter(train_images_tsne[indices, 0], train_images_tsne[indices, 1], train_images_tsne[indices, 2],
+                        label=str(cluster_label), s=10)
+        print("HERE1 ")
+        # Add centroids
+        ax.scatter(self.centroids[:, 0], self.centroids[:, 1], self.centroids[:, 2],
+                    s=100, c='red', marker='x', label='Centroids')
+
+        ax.set_title('Clusters Visualized with t-SNE in 3D')
+        ax.legend(title='Cluster Label')
+        ax.set_xlabel('t-SNE Dimension 1')
+        ax.set_ylabel('t-SNE Dimension 2')
+        ax.set_zlabel('t-SNE Dimension 3')
+        print("HERE2 ")
+
+        # Save the figure with the current time as the filename
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        plt.savefig(f'clusters_kmeans_{current_time}.png')  # Save the figure with the current time
+        plt.show()
 
 class KMeansCosine:
     def __init__(self, n_clusters, max_iter=300):
@@ -103,4 +141,34 @@ class KMeansCosine:
         # Save the figure with the current time as the filename
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         plt.savefig(f'clusters_{current_time}.png')  # Save the figure with the current time
-        
+     
+    def reduce_dimensionality_with_tsne(self, train_images, n_components=3, random_state=42):
+        tsne = TSNE(n_components=n_components, random_state=random_state)
+        return tsne.fit_transform(train_images.reshape(train_images.shape[0], -1))
+    def visualize_clusters_with_tsne(self, train_images):
+        # Reduce dimensionality with t-SNE
+        train_images_tsne = self.reduce_dimensionality_with_tsne(train_images)
+
+        # Visualize in 3D
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Scatter plot for each cluster
+        for cluster_label in np.unique(self.labels):
+            indices = np.where(self.labels == cluster_label)[0]
+            ax.scatter(train_images_tsne[indices, 0], train_images_tsne[indices, 1], train_images_tsne[indices, 2],
+                        label=str(cluster_label), s=10)
+
+        # Add centroids
+        ax.scatter(self.centroids[:, 0], self.centroids[:, 1], self.centroids[:, 2],
+                    s=100, c='red', marker='x', label='Centroids')
+
+        ax.set_title('Clusters Visualized with t-SNE in 3D')
+        ax.legend(title='Cluster Label')
+        ax.set_xlabel('t-SNE Dimension 1')
+        ax.set_ylabel('t-SNE Dimension 2')
+        ax.set_zlabel('t-SNE Dimension 3')
+
+        # Save the figure with the current time as the filename
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        plt.savefig(f'clusters_kmeans_cosine_{current_time}.png')  # Save the figure with the current time
