@@ -1,48 +1,42 @@
-# main.py
+# kmeans_cython.pyx
 
-from mnist_loader import MNISTLoader
-from kmeans import KMeans, KMeansCosine
-from evaluation import calculate_clustering_accuracy, calculate_sse
+import numpy as np
+cimport numpy as np
 
-def main():
-    # Load MNIST dataset
-    mnist_loader = MNISTLoader()
-    train_images, train_labels, test_images, test_labels = mnist_loader.load_dataset()
-    
-    # Flatten the images
-    train_images_flattened = train_images.reshape(train_images.shape[0], -1)
-    test_images_flattened = test_images.reshape(test_images.shape[0], -1)
-    
-    print("MNIST dataset loaded.")
-    # Perform clustering with KMeans using Euclidean distance
-    kmeans = KMeans(n_clusters=10)
-    print("Performing clustering with Euclidean distance...")
-    cluster_labels_euclidean = kmeans.fit(train_images_flattened)
-    print("Clustering complete.")
+cpdef class KMeans:
+    cdef int n_clusters
+    cdef int max_iter
+    cdef np.ndarray[np.float64_t, ndim=2] centroids
 
+    def __init__(self, int n_clusters, int max_iter=300):
+        self.n_clusters = n_clusters
+        self.max_iter = max_iter
 
-    # Evaluate clustering results using clustering accuracy and SSE
-    print("Evaluating clustering results...")
-    clustering_accuracy_euclidean = calculate_clustering_accuracy(cluster_labels_euclidean, train_labels)
-    sse_euclidean = calculate_sse(train_images_flattened, cluster_labels_euclidean, kmeans.centroids)
-    
-    print("Clustering accuracy using Euclidean distance:", clustering_accuracy_euclidean)
-    print("Sum of Squared Errors (SSE) using Euclidean distance:", sse_euclidean)
-    
+    cpdef fit(self, np.ndarray[np.float64_t, ndim=2] X):
+        # Cython implementation of the k-means algorithm
 
-    # Perform clustering with KMeansCosine using cosine similarity
-    print("Performing clustering with cosine similarity...")
-    kmeans_cosine = KMeansCosine(n_clusters=10)
-    cluster_labels_cosine = kmeans_cosine.fit(train_images_flattened)
-    
-    # Evaluate clustering results using clustering accuracy and SSE
-    clustering_accuracy_cosine = calculate_clustering_accuracy(cluster_labels_cosine, train_labels)
-    sse_cosine = calculate_sse(train_images_flattened, cluster_labels_cosine, kmeans_cosine.centroids)
-    
-    print("Clustering accuracy using cosine similarity:", clustering_accuracy_cosine)
-    print("Sum of Squared Errors (SSE) using cosine similarity:", sse_cosine)
+cpdef class KMeansCosine:
+    cdef int n_clusters
+    cdef int max_iter
+    cdef np.ndarray[np.float64_t, ndim=2] centroids
 
-    printf("Done")
+    def __init__(self, int n_clusters, int max_iter=300):
+        self.n_clusters = n_clusters
+        self.max_iter = max_iter
 
-if __name__ == "__main__":
-    main()
+    cpdef fit(self, np.ndarray[np.float64_t, ndim=2] X):
+        # Cython implementation of the k-means algorithm
+
+# evaluation_cython.pyx
+
+import numpy as np
+cimport numpy as np
+
+cpdef double calculate_clustering_accuracy(np.ndarray[np.int64_t, ndim=1] cluster_labels,
+                                          np.ndarray[np.int64_t, ndim=1] true_labels):
+    # Cython implementation of clustering accuracy calculation
+
+cpdef double calculate_sse(np.ndarray[np.float64_t, ndim=2] X,
+                            np.ndarray[np.int64_t, ndim=1] cluster_labels,
+                            np.ndarray[np.float64_t, ndim=2] centroids):
+    # Cython implementation of SSE calculation

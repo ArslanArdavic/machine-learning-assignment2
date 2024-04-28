@@ -1,26 +1,40 @@
-import numpy as np
+# clustering_accuracy.pyx
 
-def calculate_clustering_accuracy(cluster_labels, true_labels):
-    # Initialize a dictionary to map cluster labels to true labels
-    label_map = {}
-    for cluster in np.unique(cluster_labels):
-        # Find the most common true label in the cluster
-        cluster_members = true_labels[cluster_labels == cluster]
-        true_label = np.argmax(np.bincount(cluster_members))
-        label_map[cluster] = true_label
+import numpy as np
+cimport numpy as np
+
+cpdef double calculate_clustering_accuracy(np.ndarray[np.int64_t, ndim=1] cluster_labels,
+                                          np.ndarray[np.int64_t, ndim=1] true_labels):
+    cdef int n_samples = cluster_labels.shape[0]
+    cdef int n_clusters = len(np.unique(cluster_labels))
+    cdef np.ndarray[np.int64_t, ndim=1] label_map = np.zeros(n_clusters, dtype=np.int64)
+    cdef np.ndarray[np.int64_t, ndim=1] mapped_labels = np.zeros(n_samples, dtype=np.int64)
     
-    # Map cluster labels to true labels
-    mapped_labels = [label_map[cluster] for cluster in cluster_labels]
+    for i in range(n_clusters):
+        cluster = np.where(cluster_labels == i)[0]
+        cluster_members = true_labels[cluster]
+        label_map[i] = np.argmax(np.bincount(cluster_members))
     
-    # Calculate clustering accuracy
-    correct_predictions = np.sum(mapped_labels == true_labels)
-    total_samples = len(true_labels)
-    acc = correct_predictions / total_samples
+    for i in range(n_samples):
+        mapped_labels[i] = label_map[cluster_labels[i]]
+    
+    cdef int correct_predictions = np.sum(mapped_labels == true_labels)
+    cdef int total_samples = n_samples
+    cdef double acc = correct_predictions / total_samples
     return acc
 
-def calculate_sse(X, cluster_labels, centroids):
-    sse = 0
-    for i, centroid in enumerate(centroids):
-        # Calculate squared Euclidean distance between data points and centroid
-        sse += np.sum((X[cluster_labels == i] - centroid) ** 2)
+cpdef double calculate_sse(np.ndarray[np.float64_t, ndim=2] X,
+                            np.ndarray[np.int64_t, ndim=1] cluster_labels,
+                            np.ndarray[np.float64_t, ndim=2] centroids):
+    cdef int n_clusters = centroids.shape[0]
+    cdef int n_features = X.shape[1]
+    cdef double sse = 0.0
+    
+    for i in range(n_clusters):
+        cluster_indices = np.where(cluster_labels == i)[0]
+        cluster_data = X[cluster_indices, :]
+        cluster_centroid = centroids[i, :]
+        for j in range(cluster_data.shape[0]):
+            sse += np.sum((cluster_data[j, :] - cluster_centroid) ** 2)
+    
     return sse
