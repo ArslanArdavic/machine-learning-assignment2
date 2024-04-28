@@ -2,6 +2,40 @@ from mnist_loader import MNISTLoader
 from kmeans import KMeans, KMeansCosine
 from evaluation import calculate_clustering_accuracy, calculate_sse
 import time
+import matplotlib.pyplot as plt
+
+def plot_cluster_images(images, cluster_labels, num_clusters):
+    # Plot some sample images from each cluster
+    fig, axs = plt.subplots(num_clusters, 5, figsize=(10, 10))
+    for cluster in range(num_clusters):
+        cluster_indices = np.where(cluster_labels == cluster)[0]
+        for i in range(5):
+            axs[cluster, i].imshow(images[cluster_indices[i]].reshape(28, 28), cmap='gray')
+            axs[cluster, i].axis('off')
+            axs[cluster, i].set_title(f'Cluster {cluster}')
+    plt.tight_layout()
+    plt.show()
+
+def plot_final_clusters(centroids, cluster_labels, images, num_clusters):
+    # Plot cluster centroids
+    fig, axs = plt.subplots(1, num_clusters, figsize=(10, 5))
+    for i in range(num_clusters):
+        axs[i].imshow(centroids[i].reshape(28, 28), cmap='gray')
+        axs[i].axis('off')
+        axs[i].set_title(f'Cluster {i} Centroid')
+    plt.tight_layout()
+    plt.show()
+
+    # Plot some representative images from each cluster
+    fig, axs = plt.subplots(num_clusters, 5, figsize=(10, 10))
+    for cluster in range(num_clusters):
+        cluster_indices = np.where(cluster_labels == cluster)[0]
+        for i in range(5):
+            axs[cluster, i].imshow(images[cluster_indices[i]].reshape(28, 28), cmap='gray')
+            axs[cluster, i].axis('off')
+            axs[cluster, i].set_title(f'Cluster {cluster}')
+    plt.tight_layout()
+    plt.show()
 
 def main():
     start_time = time.time()  # Record start time
@@ -29,19 +63,12 @@ def main():
     
     print("Clustering accuracy using Euclidean distance:", clustering_accuracy_euclidean)
     print("Sum of Squared Errors (SSE) using Euclidean distance:", sse_euclidean)
-    
 
-    # Perform clustering with KMeansCosine using cosine similarity
-    print("Performing clustering with cosine similarity...")
-    kmeans_cosine = KMeansCosine(n_clusters=10)
-    cluster_labels_cosine = kmeans_cosine.fit(train_images_flattened)
-    
-    # Evaluate clustering results using clustering accuracy and SSE
-    clustering_accuracy_cosine = calculate_clustering_accuracy(cluster_labels_cosine, train_labels)
-    sse_cosine = calculate_sse(train_images_flattened, cluster_labels_cosine, kmeans_cosine.centroids)
-    
-    print("Clustering accuracy using cosine similarity:", clustering_accuracy_cosine)
-    print("Sum of Squared Errors (SSE) using cosine similarity:", sse_cosine)
+    # Plot clustering images
+    plot_cluster_images(train_images, cluster_labels_euclidean, 10)
+
+    # Plot final cluster centroids and images
+    plot_final_clusters(kmeans.centroids, cluster_labels_euclidean, train_images, 10)
 
     end_time = time.time()  # Record end time
     execution_time = end_time - start_time  # Calculate execution time

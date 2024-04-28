@@ -1,0 +1,7 @@
+Evaluating clustering results...
+Clustering accuracy using Euclidean distance: 0.5907333333333333
+Sum of Squared Errors (SSE) using Euclidean distance: 152992560615.15393
+Performing clustering with cosine similarity...
+Clustering accuracy using cosine similarity: 0.5999333333333333
+Sum of Squared Errors (SSE) using cosine similarity: 153654347267.6928
+Total execution time: 282.31 seconds
