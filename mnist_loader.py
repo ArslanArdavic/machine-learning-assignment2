@@ -24,7 +24,7 @@ class MNISTLoader:
     def load_mnist_images(self, filename):
         with gzip.open(filename, 'rb') as f:
             data = np.frombuffer(f.read(), np.uint8, offset=16)
-        return data.reshape(-1, 28, 28)
+        return data.reshape(-1, 28, 28) / 255.0  # Normalize pixel values to range [0, 1]
 
     def load_mnist_labels(self, filename):
         with gzip.open(filename, 'rb') as f:

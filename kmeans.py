@@ -11,9 +11,10 @@ class KMeans:
         # Step 1: Initialize cluster centroids randomly
         print("Step 1: Initialize cluster centroids randomly")
         self.centroids = X[np.random.choice(n_samples, self.n_clusters, replace=False)]
-        
+        i = 0
         for _ in range(self.max_iter):
-            print("Iteration")
+            print(f"Iteration {i}")
+            i += 1
             # Step 2: Assign each data point to the nearest cluster centroid
             distances = np.sqrt(((X - self.centroids[:, np.newaxis])**2).sum(axis=2))
             labels = np.argmin(distances, axis=0)
