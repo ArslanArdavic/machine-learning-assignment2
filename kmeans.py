@@ -9,9 +9,11 @@ class KMeans:
         n_samples, n_features = X.shape
         
         # Step 1: Initialize cluster centroids randomly
+        print("Step 1: Initialize cluster centroids randomly")
         self.centroids = X[np.random.choice(n_samples, self.n_clusters, replace=False)]
         
         for _ in range(self.max_iter):
+            print("Iteration")
             # Step 2: Assign each data point to the nearest cluster centroid
             distances = np.sqrt(((X - self.centroids[:, np.newaxis])**2).sum(axis=2))
             labels = np.argmin(distances, axis=0)
@@ -21,10 +23,11 @@ class KMeans:
             
             # Check for convergence
             if np.allclose(self.centroids, new_centroids):
+                print("Converged")
                 break
             
             self.centroids = new_centroids
-        
+        print("Returning labels")
         return labels
 
 class KMeansCosine:
