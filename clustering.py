@@ -114,9 +114,11 @@ class KMeans:
         return labels, self.centroids
     
     def visualize_clusters(self):
-        # Perform PCA for dimensionality reduction
-        pca = PCA(n_components=2)
-        X_pca = pca.fit_transform(self.X)
+        X_pca = self.X
+        if not self.reduce_with_pca:
+            # Perform PCA for dimensionality reduction
+            pca = PCA(n_components=2)
+            X_pca = pca.fit_transform(self.X)
 
         # Plot data points colored by cluster assignments
         plt.scatter(X_pca[:, 0], X_pca[:, 1], c=self.labels, cmap='viridis', s=10)
