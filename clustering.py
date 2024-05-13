@@ -132,7 +132,7 @@ class KMeans:
         plt.xlabel('Principal Component 1')
         plt.ylabel('Principal Component 2')
         
-        plt.savefig(f'experiments/{self.experiment_time}/{self.distance}{"-reduced-"+str(self.reduce_with_pca)  if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time()}.png')  # Save the figure with the current time
+        plt.savefig(f'experiments/{self.experiment_time}/{self.distance}{"-reduced-"+str(self.reduce_with_pca) + "-" if self.reduce_with_pca else ""}{ "normalized-" if self.normalize else ""}{time.time()}.png')  # Save the figure with the current time
 
 class Experiment:
     def __init__(self, normalize, experiment_time, images, labels, n_clusters, max_iter=300, distance='euclidean', reduce_with_pca=False, path="", visualize=True):
@@ -189,7 +189,7 @@ class Experiment:
         return sse
     
     def run(self): 
-        with open(f'{self.path}/{self.distance}{"-reduced-"+str(self.reduce_with_pca) if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time()}.txt', 'w') as out_file:
+        with open(f'{self.path}/{self.distance}{"-reduced-"+str(self.reduce_with_pca)+"-" if self.reduce_with_pca else ""}{ "normalized-" if self.normalize else ""}{time.time()}.txt', 'w') as out_file:
             # Perform clustering with KMeans
             print(f"Performing clustering with distance={self.distance}...")
             start_time = time.time()
@@ -268,12 +268,12 @@ if __name__ == "__main__":
     path_normal = f'./experiments/{experiment_time}/normal_analysis'
     euclidian_all_features  = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
     cosine_all_features     = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    euclidian_pca           = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=4,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_pca              = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    euclidian_pca           = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_pca              = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=best_pca_cosine,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
     
     euclidian_all_features  = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
     cosine_all_features     = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    euclidian_pca           = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_pca              = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    euclidian_pca           = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=best_pca_euclidian,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_pca              = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=best_pca_cosine,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
     
     print("All experiments completed.")
