@@ -7,9 +7,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.manifold import TSNE
 
 class KMeans:
-    def __init__(self, n_clusters, max_iter=300):
+    def __init__(self, n_clusters, max_iter=300, distance='euclidean'):
         self.n_clusters = n_clusters
         self.max_iter = max_iter
+        self.distance = distance
 
     def fit(self, X):
         self.X = X
@@ -36,10 +37,12 @@ class KMeans:
         self.labels = labels
         return labels, self.centroids
     
-    def visualize_clusters(self):
-        # Perform PCA for dimensionality reduction
-        pca = PCA(n_components=2)
-        X_pca = pca.fit_transform(self.X)
+    def visualize_clusters(self, is_reduced=False):
+        X_pca = self.X
+        if not is_reduced:
+            # Perform PCA for dimensionality reduction
+            pca = PCA(n_components=2)
+            X_pca = pca.fit_transform(self.X)
 
         # Plot data points colored by cluster assignments
         plt.scatter(X_pca[:, 0], X_pca[:, 1], c=self.labels, cmap='viridis', s=10)
@@ -50,11 +53,11 @@ class KMeans:
         plt.title('Clusters using Euclidian Distance')
         plt.xlabel('Principal Component 1')
         plt.ylabel('Principal Component 2')
-        plt.colorbar(label='Cluster Label')
+        #plt.colorbar(label='Cluster Label')
         
         # Save the figure with the current time as the filename
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        plt.savefig(f'clusters_{current_time}.png')  # Save the figure with the current time
+        plt.savefig(f'experiments/clusters_{current_time}.png')  # Save the figure with the current time
 
     def reduce_dimensionality_with_tsne(self, train_images, n_components=3, random_state=42):
         print("Reducing dimensionality with t-SNE...")

@@ -2,6 +2,7 @@ import os
 import urllib.request
 import gzip
 import numpy as np
+import matplotlib.pyplot as plt
 
 class MNISTLoader:
     def __init__(self, save_path='./mnist_data'):
@@ -13,6 +14,7 @@ class MNISTLoader:
             'test_images': 't10k-images-idx3-ubyte.gz',
             'test_labels': 't10k-labels-idx1-ubyte.gz'
         }
+        self.classes = [2, 3, 8, 9]
 
     def download_mnist(self):
         os.makedirs(self.save_path, exist_ok=True)
@@ -24,8 +26,8 @@ class MNISTLoader:
     def load_mnist_images(self, filename):
         with gzip.open(filename, 'rb') as f:
             data = np.frombuffer(f.read(), np.uint8, offset=16)
-        return data.reshape(-1, 28, 28) / 255.0  # Normalize pixel values to range [0, 1]
-
+        return data.reshape(-1, 28, 28)
+    
     def load_mnist_labels(self, filename):
         with gzip.open(filename, 'rb') as f:
             data = np.frombuffer(f.read(), np.uint8, offset=8)
@@ -37,9 +39,25 @@ class MNISTLoader:
         train_labels = self.load_mnist_labels(os.path.join(self.save_path, self.key_file['train_labels']))
         test_images = self.load_mnist_images(os.path.join(self.save_path, self.key_file['test_images']))
         test_labels = self.load_mnist_labels(os.path.join(self.save_path, self.key_file['test_labels']))
-        return train_images, train_labels, test_images, test_labels
+        
+        # Filter train and test datasets based on the specified classes
+        train_mask = np.isin(train_labels, self.classes)
+        test_mask = np.isin(test_labels, self.classes)
+        
+        filtered_train_images = train_images[train_mask]
+        filtered_train_labels = train_labels[train_mask]
+        filtered_test_images = test_images[test_mask]
+        filtered_test_labels = test_labels[test_mask]
+        
+        # Merge train and test datasets
+        merged_images = np.concatenate((filtered_train_images, filtered_test_images), axis=0)
+        merged_labels = np.concatenate((filtered_train_labels, filtered_test_labels), axis=0)
+        
+        return merged_images, merged_labels
 
 # Example usage:
 mnist_loader = MNISTLoader()
-train_images, train_labels, test_images, test_labels = mnist_loader.load_dataset()
+images, labels = mnist_loader.load_dataset()
 print("Downloading and loading MNIST dataset complete.")
+print(f"Number of images: {images.shape[0]}")
+print(f"Number of labels: {labels.shape[0]}")
