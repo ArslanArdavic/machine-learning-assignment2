@@ -114,11 +114,9 @@ class KMeans:
         return labels, self.centroids
     
     def visualize_clusters(self):
-        X_pca = self.X
-        if not self.reduce_with_pca:
-            # Perform PCA for dimensionality reduction
-            pca = PCA(n_components=2)
-            X_pca = pca.fit_transform(self.X)
+        # Perform PCA for dimensionality reduction
+        pca = PCA(n_components=2)
+        X_pca = pca.fit_transform(self.X)
 
         # Plot data points colored by cluster assignments
         plt.scatter(X_pca[:, 0], X_pca[:, 1], c=self.labels, cmap='viridis', s=10)
@@ -134,11 +132,11 @@ class KMeans:
         plt.xlabel('Principal Component 1')
         plt.ylabel('Principal Component 2')
         
-        plt.savefig(f'experiments/{self.experiment_time}/{self.distance}{"-reduced-"+str(self.reduce_with_pca)  if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time}.png')  # Save the figure with the current time
+        plt.savefig(f'experiments/{self.experiment_time}/{self.distance}{"-reduced-"+str(self.reduce_with_pca)  if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time()}.png')  # Save the figure with the current time
 
 class Experiment:
     def __init__(self, normalize, experiment_time, images, labels, n_clusters, max_iter=300, distance='euclidean', reduce_with_pca=False, path="", visualize=True):
-        self.kmeans = KMeans(normalize, experiment_time, n_clusters, max_iter, distance, reduce_with_pca)
+        self.kmeans = KMeans(visualize=visualize ,normalize=normalize, experiment_time=experiment_time, n_clusters=n_clusters, max_iter=max_iter, distance=distance, reduce_with_pca=reduce_with_pca)
         self.images_flattened = images.reshape(images.shape[0], -1)
         if reduce_with_pca:
             pca = PCA(n_components=reduce_with_pca)
@@ -191,7 +189,7 @@ class Experiment:
         return sse
     
     def run(self): 
-        with open(f'{self.path}/{self.distance}{"-reduced-"+str(self.reduce_with_pca) if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}.txt', 'w') as out_file:
+        with open(f'{self.path}/{self.distance}{"-reduced-"+str(self.reduce_with_pca) if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time()}.txt', 'w') as out_file:
             # Perform clustering with KMeans
             print(f"Performing clustering with distance={self.distance}...")
             start_time = time.time()
@@ -235,7 +233,7 @@ if __name__ == "__main__":
         euclidian_pca = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=i, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca)
         if euclidian_pca.accuracy > accuracy:
             accuracy = euclidian_pca.accuracy
-            best_pca = i
+            best_pca_euclidian = i
     
     # Run experiments with the best number of principal components for Euclidean distance
     print(f"Best number of principal components for Euclidean distance: {best_pca_euclidian}")
