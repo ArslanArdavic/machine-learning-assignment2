@@ -1,13 +1,12 @@
-import os
-import urllib.request
-import gzip
-import numpy as np
-import matplotlib.pyplot as plt
 from   sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import urllib.request
 import numpy as np
 import datetime
 import time
 import copy
+import gzip
+import os
 
 class MNISTLoader:
     def __init__(self, save_path='./mnist_data'):
@@ -58,14 +57,18 @@ class MNISTLoader:
         merged_images = np.concatenate((filtered_train_images, filtered_test_images), axis=0)
         merged_labels = np.concatenate((filtered_train_labels, filtered_test_labels), axis=0)
         
+        print("Dataset loaded successfully.\n")
         return merged_images, merged_labels
     
 class KMeans:
-    def __init__(self, experiment_time, n_clusters, max_iter, distance, reduce_with_pca):
+    def __init__(self,visualize, normalize, experiment_time, n_clusters, max_iter, distance, reduce_with_pca):
         self.n_clusters = n_clusters
         self.max_iter = max_iter
         self.distance = distance
         self.reduce_with_pca = reduce_with_pca
+        self.experiment_time = experiment_time
+        self.normalize = normalize
+        self.visualize = visualize
 
     def fit(self, X):
         self.X = X
@@ -121,7 +124,9 @@ class KMeans:
         plt.scatter(X_pca[:, 0], X_pca[:, 1], c=self.labels, cmap='viridis', s=10)
 
         # Plot centroids
-        plt.scatter(self.centroids[:, 0], self.centroids[:, 1], c='red', marker='x', s=100)
+        if self.reduce_with_pca:
+            plt.scatter(self.centroids[:, 0], self.centroids[:, 1], c='red', marker='x', s=100)
+        
         if self.distance == 'euclidean':
             plt.title('Clusters using Euclidian Distance')
         elif self.distance == 'cosine':
@@ -129,21 +134,35 @@ class KMeans:
         plt.xlabel('Principal Component 1')
         plt.ylabel('Principal Component 2')
         
-        plt.savefig(f'experiments/{experiment_time}/{self.distance}{"-reduced" if self.reduce_with_pca else ""}.png')  # Save the figure with the current time
+        plt.savefig(f'experiments/{self.experiment_time}/{self.distance}{"-reduced-"+str(self.reduce_with_pca)  if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}{time.time}.png')  # Save the figure with the current time
 
 class Experiment:
-    def __init__(self, experiment_time, images, labels, n_clusters, max_iter=300, distance='euclidean', reduce_with_pca=False):
-        self.kmeans = KMeans(experiment_time, n_clusters, max_iter, distance, reduce_with_pca)
+    def __init__(self, normalize, experiment_time, images, labels, n_clusters, max_iter=300, distance='euclidean', reduce_with_pca=False, path="", visualize=True):
+        self.kmeans = KMeans(normalize, experiment_time, n_clusters, max_iter, distance, reduce_with_pca)
         self.images_flattened = images.reshape(images.shape[0], -1)
         if reduce_with_pca:
-            pca = PCA(n_components=2)
+            pca = PCA(n_components=reduce_with_pca)
             self.images_flattened = pca.fit_transform(self.images_flattened)
         self.labels = labels
         self.distance = distance
-        self.reduced = reduce_with_pca
+        self.reduce_with_pca = reduce_with_pca
         self.experiment_time = experiment_time
+        self.normalize = normalize
+        self.visualize = visualize
+        self.path = path
+        if normalize:
+            self.normalize_images()
         self.run()
 
+    def normalize_images(self):
+        # Calculate the mean and standard deviation of the pixel values
+        mean = np.mean(self.images_flattened)
+        std_dev = np.std(self.images_flattened)
+        
+        # Normalize the images by subtracting the mean and dividing by the standard deviation
+        normalized_images = (self.images_flattened - mean) / std_dev
+        self.images_flattened = normalized_images
+        
     def calculate_clustering_accuracy(self):
         # Initialize a dictionary to map cluster labels to true labels
         label_map = {}
@@ -160,6 +179,7 @@ class Experiment:
         correct_predictions = np.sum(mapped_labels == self.labels)
         total_samples = len(self.labels)
         acc = correct_predictions / total_samples
+        self.accuracy = acc 
         return acc
 
     def calculate_sse(self):
@@ -167,10 +187,11 @@ class Experiment:
         for i, centroid in enumerate(self.cluster_centeroids):
             # Calculate squared Euclidean distance between data points and centroid
             sse += np.sum((self.images_flattened[self.cluster_labels == i] - centroid) ** 2)
+        self.sse = sse
         return sse
     
     def run(self): 
-        with open(f'experiments/{self.experiment_time}/{self.distance}{"-reduced" if self.reduced else ""}.txt', 'w') as out_file:
+        with open(f'{self.path}/{self.distance}{"-reduced-"+str(self.reduce_with_pca) if self.reduce_with_pca else ""}{ "-normalized" if self.normalize else ""}.txt', 'w') as out_file:
             # Perform clustering with KMeans
             print(f"Performing clustering with distance={self.distance}...")
             start_time = time.time()
@@ -187,15 +208,74 @@ class Experiment:
             print(f"Time taken: {time_passed}", file=out_file)
 
         out_file.close()
-        self.kmeans.visualize_clusters()
+        if self.visualize:
+            self.kmeans.visualize_clusters()
 
 if __name__ == "__main__":
     mnist_loader = MNISTLoader()
     images, labels = mnist_loader.load_dataset()
     experiment_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     os.makedirs(f'./experiments/{experiment_time}', exist_ok=True)
-    euclidian_all_features  = Experiment(experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), n_clusters=4, distance='euclidean', reduce_with_pca=False)
-    cosine_all_features     = Experiment(experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), n_clusters=4, distance='cosine', reduce_with_pca=False)
-    euclidian_pca           = Experiment(experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), n_clusters=4, distance='euclidean', reduce_with_pca=True)
-    cosine_pca              = Experiment(experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), n_clusters=4, distance='cosine', reduce_with_pca=True)
+    path = f'./experiments/{experiment_time}'
+
+    "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+    # Run experiments with different initial random configurations for Euclidean distance
+    for i in range(5):
+        euclidian_all_features  = Experiment(normalize=True, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+
+    # Run experiments to find the optimal number of principal components 
+    os.makedirs(f'./experiments/{experiment_time}/pca_analysis', exist_ok=True)
+    path_pca = f'./experiments/{experiment_time}/pca_analysis'
+    
+    accuracy = 0
+    best_pca_euclidian = 0
+    for i in range(2, 20, 2):
+        print(f"Running experiment with {i} principal components...")
+        euclidian_pca = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=i, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca)
+        if euclidian_pca.accuracy > accuracy:
+            accuracy = euclidian_pca.accuracy
+            best_pca = i
+    
+    # Run experiments with the best number of principal components for Euclidean distance
+    print(f"Best number of principal components for Euclidean distance: {best_pca_euclidian}")
+    for i in range(5):
+        euclidian_pca = Experiment(normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+
+    "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+    # Run experiments with different initial random configurations for Cosine distance
+    for i in range(5):
+        cosine_all_features = Experiment(normalize=True, distance='cosine', reduce_with_pca=False, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+
+    # Run experiments to find the optimal number of principal components for Cosine distance
+    accuracy = 0
+    best_pca_cosine = 0
+    for i in range(2, 20, 2):
+        print(f"Running experiment with {i} principal components...")
+        cosine_pca = Experiment(visualize=False, normalize=True, distance='cosine', reduce_with_pca=i, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca)
+        if cosine_pca.accuracy > accuracy:
+            accuracy = cosine_pca.accuracy
+            best_pca_cosine = i
+    
+    # Run experiments with the best number of principal components for Cosine distance
+    print(f"Best number of principal components for Cosine distance: {best_pca_cosine}")
+    for i in range(5):
+        cosine_pca = Experiment(normalize=True, distance='cosine', reduce_with_pca=best_pca_cosine, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+    
+    "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+    # Run experiments to show the effect of normalization
+    os.makedirs(f'./experiments/{experiment_time}/normal_analysis', exist_ok=True)
+    path_normal = f'./experiments/{experiment_time}/normal_analysis'
+    euclidian_all_features  = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_all_features     = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    euclidian_pca           = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=4,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_pca              = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    
+    euclidian_all_features  = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_all_features     = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    euclidian_pca           = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    cosine_pca              = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=2,      n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    
     print("All experiments completed.")
