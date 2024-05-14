@@ -45,17 +45,20 @@ class MNISTLoader:
         test_labels = self.load_mnist_labels(os.path.join(self.save_path, self.key_file['test_labels']))
         
         # Filter train and test datasets based on the specified classes
-        train_mask = np.isin(train_labels, self.classes)
-        test_mask = np.isin(test_labels, self.classes)
+        #train_mask = np.isin(train_labels, self.classes)
+        #test_mask = np.isin(test_labels, self.classes)
+        #
+        #filtered_train_images = train_images[train_mask]
+        #filtered_train_labels = train_labels[train_mask]
+        #filtered_test_images = test_images[test_mask]
+        #filtered_test_labels = test_labels[test_mask]
+        #
+        ## Merge train and test datasets
+        #merged_images = np.concatenate((filtered_train_images, filtered_test_images), axis=0)
+        #merged_labels = np.concatenate((filtered_train_labels, filtered_test_labels), axis=0)
         
-        filtered_train_images = train_images[train_mask]
-        filtered_train_labels = train_labels[train_mask]
-        filtered_test_images = test_images[test_mask]
-        filtered_test_labels = test_labels[test_mask]
-        
-        # Merge train and test datasets
-        merged_images = np.concatenate((filtered_train_images, filtered_test_images), axis=0)
-        merged_labels = np.concatenate((filtered_train_labels, filtered_test_labels), axis=0)
+        merged_images = np.concatenate((train_images, test_images), axis=0)
+        merged_labels = np.concatenate((train_labels, test_labels), axis=0)
         
         print("Dataset loaded successfully.\n")
         return merged_images, merged_labels
