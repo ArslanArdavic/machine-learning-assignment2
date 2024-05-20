@@ -213,6 +213,7 @@ class Experiment:
             print("Clustering accuracy using Euclidean distance:", self.calculate_clustering_accuracy())
             print("Sum of Squared Errors (SSE) using Euclidean distance:", self.calculate_sse())
             print(f"Time taken: {time_passed}")
+            print("--------------------------------------------")
 
         out_file.close()
         if self.visualize:
@@ -229,7 +230,7 @@ if __name__ == "__main__":
 
     # Run experiments with different initial random configurations for Euclidean distance
     for i in range(5):
-        euclidian_all_features  = Experiment(normalize=True, distance='euclidean', reduce_with_pca=False,  n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+        euclidian_all_features  = Experiment(normalize=True, distance='euclidean', reduce_with_pca=False,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
 
     # Run experiments to find the optimal number of principal components 
     os.makedirs(f'./experiments/{experiment_time}/pca_analysis', exist_ok=True)
@@ -239,7 +240,7 @@ if __name__ == "__main__":
     best_pca_euclidian = 0
     for i in range(2, 20, 2):
         print(f"Running experiment with {i} principal components...")
-        euclidian_pca = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=i, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca)
+        euclidian_pca = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=i, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca, keep=False)
         if euclidian_pca.accuracy > accuracy:
             accuracy = euclidian_pca.accuracy
             best_pca_euclidian = i
@@ -247,20 +248,20 @@ if __name__ == "__main__":
     # Run experiments with the best number of principal components for Euclidean distance
     print(f"Best number of principal components for Euclidean distance: {best_pca_euclidian}")
     for i in range(5):
-        euclidian_pca = Experiment(normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+        euclidian_pca = Experiment(normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
 
     "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
 
     # Run experiments with different initial random configurations for Cosine distance
     for i in range(5):
-        cosine_all_features = Experiment(normalize=True, distance='cosine', reduce_with_pca=False, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+        cosine_all_features = Experiment(normalize=True, distance='cosine', reduce_with_pca=False, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
 
     # Run experiments to find the optimal number of principal components for Cosine distance
     accuracy = 0
     best_pca_cosine = 0
     for i in range(2, 20, 2):
         print(f"Running experiment with {i} principal components...")
-        cosine_pca = Experiment(visualize=False, normalize=True, distance='cosine', reduce_with_pca=i, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca)
+        cosine_pca = Experiment(visualize=False, normalize=True, distance='cosine', reduce_with_pca=i, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_pca, keep=False)
         if cosine_pca.accuracy > accuracy:
             accuracy = cosine_pca.accuracy
             best_pca_cosine = i
@@ -268,21 +269,20 @@ if __name__ == "__main__":
     # Run experiments with the best number of principal components for Cosine distance
     print(f"Best number of principal components for Cosine distance: {best_pca_cosine}")
     for i in range(5):
-        cosine_pca = Experiment(normalize=True, distance='cosine', reduce_with_pca=best_pca_cosine, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
+        cosine_pca = Experiment(normalize=True, distance='cosine', reduce_with_pca=best_pca_cosine, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path)
     
     "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
 
     # Run experiments to show the effect of normalization
     os.makedirs(f'./experiments/{experiment_time}/normal_analysis', exist_ok=True)
     path_normal = f'./experiments/{experiment_time}/normal_analysis'
-    euclidian_all_features  = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=False,               n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_all_features     = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=False,               n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    euclidian_pca           = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian,  n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_pca              = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=best_pca_cosine,     n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    
-    euclidian_all_features  = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=False,              n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_all_features     = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=False,              n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    euclidian_pca           = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=best_pca_euclidian, n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
-    cosine_pca              = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=best_pca_cosine,    n_clusters=10, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal)
+    euclidian_all_features  = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=False,               n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    cosine_all_features     = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=False,               n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    euclidian_pca           = Experiment(visualize=False, normalize=True, distance='euclidean', reduce_with_pca=best_pca_euclidian,  n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    cosine_pca              = Experiment(visualize=False, normalize=True, distance='cosine',    reduce_with_pca=best_pca_cosine,     n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    euclidian_all_features  = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=False,              n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    cosine_all_features     = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=False,              n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    euclidian_pca           = Experiment(visualize=False, normalize=False, distance='euclidean', reduce_with_pca=best_pca_euclidian, n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
+    cosine_pca              = Experiment(visualize=False, normalize=False, distance='cosine',    reduce_with_pca=best_pca_cosine,    n_clusters=4, experiment_time=experiment_time, images=copy.deepcopy(images), labels=copy.deepcopy(labels), path=path_normal, keep=False)
     
     print("All experiments completed.")
