@@ -1,0 +1,3 @@
+Clustering accuracy using Euclidean distance: 0.5648
+Sum of Squared Errors (SSE) using Euclidean distance: 261876.64691873748
+Time taken: 7.154571771621704
